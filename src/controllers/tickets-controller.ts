@@ -8,22 +8,31 @@ export async function getTickets(req: AuthenticatedRequest, res: Response) {
 
   try {
     const userTickets = await ticketsService.findUserTickets(userId);
-
+    
     return res.status(httpStatus.OK).send(userTickets);
   } catch (error) {
+    if (error.name === "NotFoundError") {
+      return res.sendStatus(httpStatus.NOT_FOUND);
+    }
     return res.sendStatus(httpStatus.NO_CONTENT);
   }
 }
 
 export async function postTicket(req: AuthenticatedRequest, res: Response) {
-  const { userId }: { userId: number } = req;
-  const { ticketTypeId }: { ticketTypeId: number } = req.body;
-  try {
-    await ticketsService.createUserTicket({ ticketTypeId: ticketTypeId, userId: userId });
+  const userId: number = req.userId;
 
-    return res.sendStatus(httpStatus.OK);
-  } catch (error) {
+  if (req.body.ticketTypeId === undefined) {
     return res.sendStatus(httpStatus.BAD_REQUEST);
+  }
+
+  const ticketTypeId = req.body.ticketTypeId;
+
+  try {
+    const createdTicket = await ticketsService.createUserTicket( ticketTypeId, userId );
+
+    return res.status(httpStatus.CREATED).send(createdTicket);
+  } catch (error) {    
+    return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
 

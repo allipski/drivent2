@@ -1,31 +1,54 @@
 import { prisma } from "@/config";
 
+async function existEnrollment(userId: number) {
+  return prisma.enrollment.findFirst({
+    where: {
+      userId: userId
+    }
+  });
+}
+
 async function findTicketTypes() {
   return prisma.ticketType.findMany();
 }
 
 async function findUserTicket(userId: number) {
-  return prisma.ticket.findMany({
+  return prisma.ticket.findFirst({
     where: {
       Enrollment: {
-        User: {
-          id: userId
-        }
+        userId: userId
       }
+    },
+    include: {
+      TicketType: true
     }
   });
 }
 
-async function createUserTicket({ ticketTypeId: ticketTypeId, userId: userId }: { ticketTypeId: number; userId: number }) {
-  return prisma.ticket.create({
+async function createUserTicket( ticketTypeId: number, userId: number ) {
+  const enrollmentId = await prisma.enrollment.findFirst({
+    where: {
+      userId: userId
+    }
+  });
 
+  return prisma.ticket.create({
+    include: {
+      TicketType: true
+    },
+    data: {
+      status: "RESERVED",
+      ticketTypeId: ticketTypeId,
+      enrollmentId: enrollmentId.id
+    }
   });
 }
 
 const ticketsRepository = {
   findTicketTypes,
   findUserTicket,
-  createUserTicket
+  createUserTicket,
+  existEnrollment
 };
 
 export default ticketsRepository;
