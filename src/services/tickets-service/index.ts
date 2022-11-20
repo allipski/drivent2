@@ -1,8 +1,10 @@
 import { notFoundError } from "@/errors";
 import ticketsRepository from "@/repositories/tickets-repository";
+import ticketTypesRepository from "@/repositories/ticketType-repository.ts";
+import enrollmentRepository from "@/repositories/enrollment-repository";
 
 async function checkIfEnrollment(userId: number) {
-  return await ticketsRepository.existEnrollment(userId);
+  return await enrollmentRepository.existEnrollment(userId);
 }
 
 async function findUserTickets(userId: number) {
@@ -20,7 +22,7 @@ async function findUserTickets(userId: number) {
 }
 
 async function findTicketTypes() {
-  const ticketTypes = await ticketsRepository.findTicketTypes();
+  const ticketTypes = await ticketTypesRepository.findTicketTypes();
   if(!ticketTypes) {
     throw notFoundError();
   }
